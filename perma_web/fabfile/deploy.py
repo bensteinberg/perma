@@ -196,7 +196,7 @@ def bulk_sync_cdxline_flags(primary_defaults_file, cdxline_defaults_file):
         primary_defaults_file, cdxline_defaults_file
     ))
     print("Updating cdxline table")
-    qry = 'UPDATE perma_cdxline AS c, perma_link AS l SET c.is_private=l.is_private, c.is_unlisted=l.unlisted WHERE c.link_id=l.guid;'
+    qry = 'UPDATE perma_cdxline AS c, perma_link AS l SET c.is_private=l.is_private, c.is_unlisted=l.is_unlisted WHERE c.link_id=l.guid;'
     local("mysql --defaults-extra-file=%s -e '%s'" % (cdxline_defaults_file, qry))
     print("Dropping perma_link table from cdxline")
     local("mysql --defaults-extra-file=%s -e 'drop table perma_link;'" % (cdxline_defaults_file,))
