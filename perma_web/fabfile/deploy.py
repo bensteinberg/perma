@@ -182,3 +182,21 @@ def backup_code():
         out_file_path = os.path.join(env.CODE_BACKUP_DIR, "perma_web_%s.tar.gz" % date.today().isoformat())
         # || [[ $? -eq 1 ]] makes sure that we still consider an exit code of 1 (meaning files changed during tar) a success
         run_as_web_user("cd .. && tar -cvzf %s perma_web || [[ $? -eq 1 ]]" % out_file_path)
+
+@task
+def bulk_sync_cdxline_flags(primary_defaults_file, cdxline_defaults_file):
+    """
+        Update cdxline flags to match those in perma_link, in case they got out of sync during a database move
+
+        We're specifying the defaults files rather than getting credentials from application settings so we don't
+        have to rely on the settings being in any particular condition.
+    """
+    print("Creating perma_link table in cdxline database")
+    local("mysqldump --defaults-extra-file=%s perma perma_link | mysql --defaults-extra-file=%s perma_cdxline" % (
+        primary_defaults_file, cdxline_defaults_file
+    ))
+    print("Updating cdxline table")
+    qry = 'UPDATE perma_cdxline AS c, perma_link AS l SET c.is_private=l.is_private, c.is_unlisted=l.unlisted WHERE c.link_id=l.guid;'
+    local("mysql --defaults-extra-file=%s -e '%s'" % (cdxline_defaults_file, qry))
+    print("Dropping perma_link table from cdxline")
+    local("mysql --defaults-extra-file=%s -e 'drop table perma_link;'" % (cdxline_defaults_file,))
