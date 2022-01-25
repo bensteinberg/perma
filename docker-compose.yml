@@ -29,6 +29,7 @@ services:
       args:
         chrome-layer-cache-buster: 120070d7-0ce4-47f9-8afe-5f7f3e443dcc
     image: perma3:0.129
+    platform: linux/amd64
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -77,6 +78,7 @@ services:
   #
   selenium:
     image: registry.lil.tools/selenium/standalone-chrome:3.141.59-fluorine
+    platform: linux/amd64
     volumes:
       - /dev/shm:/dev/shm
     environment:
@@ -92,13 +94,17 @@ services:
   #
   pp_db:
     image: registry.lil.tools/library/postgres:12.8
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
     volumes:
       - pp_db_data:/var/lib/postgresql/data:delegated
     networks:
       - perma_payments
 
   perma-payments:
-    image: registry.lil.tools/harvardlil/perma-payments:0.36
+    image: registry.lil.tools/harvardlil/perma-payments:0.37
     # hack: sleep to give the database time to start up
     command: >
       sh -c "sleep 5 && ./manage.py migrate && fab run"
@@ -124,7 +130,7 @@ services:
   # Upload scanning
   #
   filecheck:
-    image: registry.lil.tools/harvardlil/perma-filecheck:0.7
+    image: registry.lil.tools/harvardlil/perma-filecheck:0.08
     environment:
       - UVICORN_PORT=8888
     ports:
@@ -136,7 +142,7 @@ services:
   # Webrecorder
   #
   app:
-    image: registry.lil.tools/harvardlil/webrecorder:0.11
+    image: registry.lil.tools/harvardlil/webrecorder:0.12
     command: uwsgi --need-app /code/apps/apiapp.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
@@ -157,7 +163,7 @@ services:
       - webrecorder
 
   recorder:
-    image: registry.lil.tools/harvardlil/webrecorder:0.11
+    image: registry.lil.tools/harvardlil/webrecorder:0.12
     user: root
     entrypoint:
       - "/docker-entrypoint.sh"
@@ -188,7 +194,7 @@ services:
       - webrecorder
 
   warcserver:
-    image: registry.lil.tools/harvardlil/webrecorder:0.11
+    image: registry.lil.tools/harvardlil/webrecorder:0.12
     command: uwsgi --need-app /code/apps/load.ini
     env_file:
       - ./services/docker/webrecorder/wr.env
@@ -201,7 +207,7 @@ services:
       - webrecorder
 
   nginx:
-    image: registry.lil.tools/harvardlil/nginx:0.02
+    image: registry.lil.tools/harvardlil/nginx:0.03
     depends_on:
       - app
     volumes:
