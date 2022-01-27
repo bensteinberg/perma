@@ -80,10 +80,10 @@ RUN apt-get install -y unzip libappindicator3-1 libasound2 libatk-bridge2.0-0 li
 # Install Chromium and driver
 ARG chrome-layer-cache-buster
 RUN case ${BUILDARCH} in \
-      "amd64") export SUB="archive" ;; \
-      "arm64") export SUB="ports" ;; \
+      "amd64") export PREFIX="archive.ubuntu.com/ubuntu" ;; \
+      "arm64") export PREFIX="ports.ubuntu.com" ;; \
     esac \
-    && export LOC="http://${SUB}.ubuntu.com/pool/universe/c/chromium-browser" \
+    && export LOC="http://${PREFIX}/pool/universe/c/chromium-browser" \
     && export VER="97.0.4692.71-0ubuntu0.18.04.1_${BUILDARCH}" \
     && wget ${LOC}/chromium-codecs-ffmpeg-extra_${VER}.deb \
     && wget ${LOC}/chromium-browser_${VER}.deb \
