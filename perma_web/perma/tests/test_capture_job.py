@@ -100,7 +100,6 @@ class CaptureJobTestCase(TransactionTestCase):
             try:
                 self.assertRaisesRegex(AssertionError, r'^Items in the', self.test_race_condition_prevented)
                 CaptureJob.TEST_ALLOW_RACE = False
-                assert True
                 break
             except AssertionError:
                 pass
