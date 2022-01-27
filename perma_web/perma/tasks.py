@@ -250,6 +250,8 @@ def get_browser(user_agent, proxy_address, cert_path):
         download_dir = os.path.abspath('./downloads')
         os.mkdir(download_dir)
         chrome_options = webdriver.ChromeOptions()
+        if settings.CHROMIUM_BIN:
+            chrome_options.binary_location = settings.CHROMIUM_BIN
         chrome_options.add_argument(f'user-agent={user_agent}')
         chrome_options.add_argument(f'proxy-server={proxy_address}')
         chrome_options.add_argument('headless')

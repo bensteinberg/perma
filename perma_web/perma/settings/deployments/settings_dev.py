@@ -4,6 +4,8 @@ import os
 
 DEBUG = True
 
+CHROMIUM_BIN = '/usr/bin/chromium-browser'
+
 #
 # HOSTS
 #

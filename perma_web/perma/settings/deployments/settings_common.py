@@ -603,6 +603,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
 
 
 CAPTURE_BROWSER = 'Chrome'  # some support for 'Firefox'
+CHROMIUM_BIN = None
 DISABLE_DEV_SHM = False
 CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
 PERMA_USER_AGENT_SUFFIX = "(Perma.cc)"
