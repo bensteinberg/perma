@@ -3,6 +3,7 @@ import json
 from multiprocessing.pool import ThreadPool
 
 from django.conf import settings
+from django.db import connections
 from django.test import TransactionTestCase
 from django.utils import timezone
 from rest_framework.settings import api_settings
@@ -74,37 +75,45 @@ class CaptureJobTestCase(TransactionTestCase):
         next_jobs = [CaptureJob.get_next_job(reserve=True) for i in range(len(jobs))]
         self.assertListEqual(next_jobs, expected_next_jobs)
 
-    def test_race_condition_prevented(self):
-        """ Fetch two jobs at the same time in threads and make sure same job isn't returned to both. """
+    def fetch_two_jobs(self):
         jobs = [
             create_capture_job(self.user_one),
             create_capture_job(self.user_one)
         ]
 
         def get_next_job(i):
-            return CaptureJob.get_next_job(reserve=True)
+            job = CaptureJob.get_next_job(reserve=True)
+            for connection in connections.all():
+                connection.close()
+            return job
 
         CaptureJob.TEST_PAUSE_TIME = .1
         fetched_jobs = ThreadPool(2).map(get_next_job, range(2))
         CaptureJob.TEST_PAUSE_TIME = 0
 
-        self.assertSetEqual(set(jobs), set(fetched_jobs))
+        return (jobs, fetched_jobs)
 
-    def test_race_condition_not_prevented(self):
+    def test_race_condition_prevented(self, attempts=5):
+        """ Fetch two jobs at the same time in threads and make sure same job isn't returned to both. """
+        for i in range(attempts):
+            assert not CaptureJob.TEST_ALLOW_RACE
+            jobs, fetched_jobs = self.fetch_two_jobs()
+            self.assertSetEqual(set(jobs), set(fetched_jobs))
+
+    def test_race_condition_not_prevented(self, attempts=5):
         """
             Make sure that test_race_condition_prevented is passing for the right reason --
             should fail if race condition protection is disabled.
         """
-        CaptureJob.TEST_ALLOW_RACE = True
-        # Because we can't guarantee a race condition, retry until we get one, but make sure to
-        # leave the CaptureJob class in the right condition.
-        while True:
+        for i in range(attempts):
+            CaptureJob.TEST_ALLOW_RACE = True
+            jobs, fetched_jobs = self.fetch_two_jobs()
             try:
-                self.assertRaisesRegex(AssertionError, r'^Items in the', self.test_race_condition_prevented)
-                CaptureJob.TEST_ALLOW_RACE = False
-                break
+                self.assertRaisesRegex(AssertionError, r'^Items in the', self.assertSetEqual(set(jobs), set(fetched_jobs)))
             except AssertionError:
                 pass
+            finally:
+                CaptureJob.TEST_ALLOW_RACE = False
 
     def test_hard_timeout(self):
         create_capture_job(self.user_one)
