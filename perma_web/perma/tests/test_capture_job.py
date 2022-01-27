@@ -96,6 +96,8 @@ class CaptureJobTestCase(TransactionTestCase):
             should fail if race condition protection is disabled.
         """
         CaptureJob.TEST_ALLOW_RACE = True
+        # Because we can't guarantee a race condition, retry until we get one, but make sure to
+        # leave the CaptureJob class in the right condition.
         while True:
             try:
                 self.assertRaisesRegex(AssertionError, r'^Items in the', self.test_race_condition_prevented)
