@@ -314,7 +314,7 @@ def get_page_source(browser):
     """
     try:
         return browser.execute_script("return document.documentElement.outerHTML")
-    except (WebDriverException, TimeoutException, CannotSendRequest):
+    except (WebDriverException, TimeoutException, CannotSendRequest, KeyError):
         return browser.page_source
 
 def parse_page_source(source):
