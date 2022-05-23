@@ -3,7 +3,9 @@
 # This script rebuilds the Docker containers, installing a new version of
 # Chromium if specified in the Dockerfile, and updates our user agent if necessary.
 
-# first, make sure the intended packages are available
+# first, make sure the intended packages are available; the canonical place to check
+# is the pool itself, but https://qa.debian.org/madison.php?package=chromium and
+# https://tracker.debian.org/pkg/chromium are also useful.
 VERSION=`grep CHROMIUM_VERSION= perma_web/Dockerfile | awk -F "=" '{print $2}'`
 
 for ARCH in amd64 arm64 ; do
